@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>GuitarBro 🎸</title>
+<style>
+:root{--bg:#10131b;--panel:#202637;--panel2:#151b28;--gold:#ffbd45;--text:#f6f7fb;--muted:#b9c1d2;--green:#48d597;--red:#ff7777}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+header{text-align:center;padding:25px 16px;background:linear-gradient(135deg,#252e43,#171c29);border-bottom:3px solid var(--gold)}
+header h1{margin:0;color:var(--gold);font-size:2rem} header p{margin:8px 0 0;color:var(--muted)}
+nav{position:sticky;top:0;z-index:2;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;background:#151b28;padding:10px}
+button{border:0;border-radius:11px;padding:12px 14px;background:var(--gold);color:#171717;font-weight:750;font-size:15px;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+nav button{background:#303a50;color:white} nav button.active{background:var(--gold);color:#171717}
+main{width:min(800px,100%);margin:auto;padding:15px}
+section.panel{background:var(--panel);border:1px solid #364056;border-radius:17px;padding:18px;margin:0 0 16px}
+h2{margin-top:0;color:var(--gold)} h3{margin-bottom:8px}
+.muted,.small{color:var(--muted)} .small{font-size:.9rem}
+.string-list{display:grid;gap:9px;margin:15px 0}
+.string-card{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel2);border:1px solid #38445b;border-radius:12px;padding:12px}
+.string-card strong{font-size:1.15rem;color:var(--gold)}
+.string-card button{padding:9px 12px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.string-choice{flex:1;min-width:92px;background:#303a50;color:white;border:2px solid transparent}
+.string-choice.selected{border-color:var(--gold);background:#514126}
+.big-note{font-size:3.7rem;line-height:1.1;color:var(--gold);font-weight:850;margin:5px}
+#status{background:var(--panel2);border-radius:13px;padding:15px;text-align:center;margin-top:14px}
+#noteName{font-size:2.4rem;font-weight:850;color:var(--gold)}
+.meter{height:14px;border-radius:20px;background:#384056;position:relative;margin:20px 4px 8px;overflow:hidden}
+.meter:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:white;opacity:.9}
+#meterDot{position:absolute;top:0;height:100%;width:12px;border-radius:8px;background:var(--green);left:calc(50% - 6px);transition:left .12s}
+.meter-labels{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted)}
+.answers{display:grid;gap:9px;margin-top:12px}
+.answers button{background:#303a50;color:white;text-align:left}
+#feedback{min-height:26px;margin:12px 0}
+.good{color:var(--green)} .bad{color:var(--red)}
+.hidden{display:none!important}
+footer{text-align:center;color:var(--muted);padding:20px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎸 GuitarBro</h1>
+  <p>Aprende, practica y afina cuerda por cuerda.</p>
+</header>
+<nav>
+  <button class="active" data-target="lessons">📚 Lecciones</button>
+  <button data-target="quiz">🧠 Cuestionario</button>
+  <button data-target="tuner">🎙️ Afinador</button>
+</nav>
+<main>
+<section id="lessons" class="panel">
+  <h2>📚 Lección 1: Las seis cuerdas</h2>
+  <p>La afinación estándar, desde la cuerda más grave hasta la más aguda, es <strong>Mi, La, Re, Sol, Si, Mi</strong>.</p>
+  <div class="string-list">
+    <div class="string-card"><span>6.ª cuerda · más gruesa</span><strong>E2 · Mi</strong></div>
+    <div class="string-card"><span>5.ª cuerda</span><strong>A2 · La</strong></div>
+    <div class="string-card"><span>4.ª cuerda</span><strong>D3 · Re</strong></div>
+    <div class="string-card"><span>3.ª cuerda</span><strong>G3 · Sol</strong></div>
+    <div class="string-card"><span>2.ª cuerda</span><strong>B3 · Si</strong></div>
+    <div class="string-card"><span>1.ª cuerda · más delgada</span><strong>E4 · Mi</strong></div>
+  </div>
+  <h3>Consejos para empezar</h3>
+  <ul>
+    <li>Siéntate cómodo y relaja los hombros.</li>
+    <li>Pisa la cuerda justo detrás del traste.</li>
+    <li>Practica lentamente y escucha cada nota.</li>
+  </ul>
+</section>
+
+<section id="quiz" class="panel hidden">
+  <h2>🧠 Cuestionario</h2>
+  <p id="question"></p>
+  <div id="answers" class="answers"></div>
+  <p id="feedback" aria-live="polite"></p>
+  <p>Puntos: <strong id="score">0</strong> · Pregunta <span id="qNumber">1</span> de <span id="qTotal">6</span></p>
+  <button id="nextQuestion">Siguiente pregunta</button>
+  <button id="restartQuiz" class="hidden">Volver a empezar</button>
+</section>
+
+<section id="tuner" class="panel hidden">
+  <h2>🎙️ Afinador por cuerdas</h2>
+  <p>1. Elige la cuerda que vas a afinar. 2. Activa el micrófono. 3. Toca esa cuerda sola.</p>
+  <div class="tabs" id="stringButtons">
+    <button class="string-choice selected" data-string="0">6.ª · E2</button>
+    <button class="string-choice" data-string="1">5.ª · A2</button>
+    <button class="string-choice" data-string="2">4.ª · D3</button>
+    <button class="string-choice" data-string="3">3.ª · G3</button>
+    <button class="string-choice" data-string="4">2.ª · B3</button>
+    <button class="string-choice" data-string="5">1.ª · E4</button>
+  </div>
+  <div class="string-card">
+    <div><div class="small">Cuerda seleccionada</div><strong id="selectedString">6.ª cuerda · Mi grave</strong></div>
+    <div class="big-note" id="targetNote">E2</div>
+  </div>
+  <div class="tabs">
+    <button id="micButton">🎙️ Activar micrófono</button>
+    <button id="stopButton" disabled>Detener</button>
+  </div>
+  <div id="status" aria-live="polite">
+    <div id="noteName">--</div>
+    <div id="frequency">Frecuencia detectada: -- Hz</div>
+    <div id="tuningMessage">Selecciona una cuerda y activa el micrófono.</div>
+    <div class="meter"><div id="meterDot"></div></div>
+    <div class="meter-labels"><span>♭ Muy grave</span><span>Afinada</span><span>Muy aguda ♯</span></div>
+    <p id="cents">Desviación: -- cents</p>
+  </div>
+  <p class="small">El afinador usa el micrófono. Funciona mejor en un lugar silencioso. Si la cuerda está muy floja, ténsala poco a poco. Si está muy aguda, aflójala poco a poco. No fuerces la clavija.</p>
+</section>
+</main>
+<footer>GuitarBro · Un acorde a la vez 🎸</footer>
+
+<script>
+"use strict";
+
+// Navegación entre secciones
+document.querySelectorAll("nav button").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("main section").forEach(section => section.classList.add("hidden"));
+    document.getElementById(button.dataset.target).classList.remove("hidden");
+    document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b === button));
+  });
+});
+
+// Cuestionario
+const questions = [
+  {q:"¿Cuál es la cuerda más grave en la afinación estándar?", a:["6.ª cuerda, Mi grave","1.ª cuerda, Mi agudo","2.ª cuerda, Si"], correct:0, why:"La sexta cuerda es la más gruesa y su nota estándar es Mi grave (E2)."},
+  {q:"¿Qué nota corresponde a la quinta cuerda?", a:["Re (D)","La (A)","Sol (G)"], correct:1, why:"La quinta cuerda se afina en La (A2)."},
+  {q:"¿Cuántas cuerdas tiene una guitarra estándar?", a:["4","6","8"], correct:1, why:"Una guitarra estándar tiene seis cuerdas."},
+  {q:"¿Qué nota corresponde a la tercera cuerda?", a:["Sol (G)","Si (B)","Re (D)"], correct:0, why:"La tercera cuerda se afina en Sol (G3)."},
+  {q:"¿Cuál es la cuerda más aguda?", a:["6.ª cuerda","4.ª cuerda","1.ª cuerda"], correct:2, why:"La primera cuerda es la más delgada y se afina en Mi agudo (E4)."},
+  {q:"¿Qué debes hacer si el afinador indica que la nota está demasiado grave?", a:["Tensar la cuerda muy poco a poco","Aflojarla mucho de golpe","Girar todas las clavijas"], correct:0, why:"Si la nota está grave, aumenta la tensión poco a poco y vuelve a medir."}
+];
+let qIndex=0, score=0, answered=false;
+const questionEl=document.getElementById("question");
+const answersEl=document.getElementById("answers");
+function renderQuestion(){
+  answered=false;
+  document.getElementById("feedback").textContent="";
+  document.getElementById("nextQuestion").classList.remove("hidden");
+  document.getElementById("nextQuestion").disabled=true;
+  document.getElementById("restartQuiz").classList.add("hidden");
+  if(qIndex>=questions.length){
+    questionEl.textContent="¡Terminaste el cuestionario!";
+    answersEl.innerHTML="";
+    document.getElementById("feedback").textContent=`Resultado: ${score} de ${questions.length} puntos.`;
+    document.getElementById("qNumber").textContent=questions.length;
+    document.getElementById("nextQuestion").classList.add("hidden");
+    document.getElementById("restartQuiz").classList.remove("hidden");
+    return;
+  }
+  const q=questions[qIndex];
+  questionEl.textContent=q.q;
+  document.getElementById("qNumber").textContent=qIndex+1;
+  document.getElementById("qTotal").textContent=questions.length;
+  answersEl.innerHTML="";
+  q.a.forEach((answer,i)=>{
+    const b=document.createElement("button");
+    b.textContent=answer;
+    b.addEventListener("click",()=>{
+      if(answered)return;
+      answered=true;
+      const feedback=document.getElementById("feedback");
+      if(i===q.correct){score++;document.getElementById("score").textContent=score;feedback.textContent="¡Correcto! "+q.why;feedback.className="good";}
+      else{feedback.textContent="Casi. "+q.why;feedback.className="bad";}
+      [...answersEl.querySelectorAll("button")].forEach(x=>x.disabled=true);
+      document.getElementById("nextQuestion").disabled=false;
+    });
+    answersEl.appendChild(b);
+  });
+}
+document.getElementById("nextQuestion").addEventListener("click",()=>{if(answered){qIndex++;renderQuestion();}});
+document.getElementById("restartQuiz").addEventListener("click",()=>{qIndex=0;score=0;document.getElementById("score").textContent="0";renderQuestion();});
+renderQuestion();
+
+// Afinador cromático con objetivo de cuerda seleccionado
+const strings=[
+  {label:"6.ª cuerda · Mi grave", short:"E2", hz:82.4069, midi:40},
+  {label:"5.ª cuerda · La", short:"A2", hz:110.0000, midi:45},
+  {label:"4.ª cuerda · Re", short:"D3", hz:146.8324, midi:50},
+  {label:"3.ª cuerda · Sol", short:"G3", hz:195.9977, midi:55},
+  {label:"2.ª cuerda · Si", short:"B3", hz:246.9417, midi:59},
+  {label:"1.ª cuerda · Mi agudo", short:"E4", hz:329.6276, midi:64}
+];
+let selected=0, audioContext=null, analyser=null, mediaStream=null, sourceNode=null, rafId=null, micActive=false;
+const micButton=document.getElementById("micButton");
+const stopButton=document.getElementById("stopButton");
+const noteName=document.getElementById("noteName");
+const frequencyEl=document.getElementById("frequency");
+const tuningMessage=document.getElementById("tuningMessage");
+const centsEl=document.getElementById("cents");
+const meterDot=document.getElementById("meterDot");
+const noteNames=["Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si"];
+
+function selectString(index){
+  selected=index;
+  document.querySelectorAll(".string-choice").forEach((b,i)=>b.classList.toggle("selected",i===index));
+  document.getElementById("selectedString").textContent=strings[index].label;
+  document.getElementById("targetNote").textContent=strings[index].short;
+  noteName.textContent="--";
+  frequencyEl.textContent="Frecuencia detectada: -- Hz";
+  tuningMessage.textContent=micActive?"Toca solamente la cuerda seleccionada.":"Activa el micrófono y toca la cuerda seleccionada.";
+  centsEl.textContent="Desviación: -- cents";
+  meterDot.style.left="calc(50% - 6px)";
+}
+document.querySelectorAll(".string-choice").forEach(button=>button.addEventListener("click",()=>selectString(Number(button.dataset.string))));
+
+async function startMic(){
+  if(micActive){tuningMessage.textContent="El micrófono ya está activo. Toca la cuerda seleccionada.";return;}
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    tuningMessage.textContent="Este navegador no permite el micrófono aquí. Abre GuitarBro mediante HTTPS en Chrome.";
+    return;
+  }
+  micButton.disabled=true;
+  micButton.textContent="Conectando micrófono…";
+  tuningMessage.textContent="Solicitando acceso al micrófono…";
+  try{
+    mediaStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtx)throw new Error("Este navegador no admite AudioContext.");
+    audioContext=new AudioCtx();
+    if(audioContext.state==="suspended")await audioContext.resume();
+    analyser=audioContext.createAnalyser();
+    analyser.fftSize=8192;
+    analyser.smoothingTimeConstant=0;
+    sourceNode=audioContext.createMediaStreamSource(mediaStream);
+    sourceNode.connect(analyser);
+    micActive=true;
+    micButton.textContent="🎙️ Micrófono activo";
+    stopButton.disabled=false;
+    tuningMessage.textContent="Escuchando. Toca solamente la cuerda seleccionada.";
+    detectLoop();
+  }catch(error){
+    if(mediaStream)mediaStream.getTracks().forEach(track=>track.stop());
+    mediaStream=null;
+    micActive=false;
+    micButton.disabled=false;
+    micButton.textContent="🎙️ Activar micrófono";
+    stopButton.disabled=true;
+    const messages={
+      NotAllowedError:"Permiso denegado. Permite el micrófono para esta página en Chrome.",
+      NotFoundError:"No se encontró un micrófono disponible en el dispositivo.",
+      NotReadableError:"El micrófono está ocupado por otra aplicación. Cierra otras apps que lo usen.",
+      SecurityError:"El navegador bloqueó el micrófono. Abre la página publicada con HTTPS."
+    };
+    tuningMessage.textContent=messages[error.name]||("No se pudo iniciar el micrófono: "+error.message);
+  }
+}
+
+function detectLoop(){
+  if(!micActive||!analyser||!audioContext)return;
+  const buffer=new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(buffer);
+  const rms=Math.sqrt(buffer.reduce((sum,v)=>sum+v*v,0)/buffer.length);
+  if(rms<0.008){
+    tuningMessage.textContent="Escuchando… toca la cuerda seleccionada un poco más fuerte.";
+    noteName.textContent="--";
+    frequencyEl.textContent="Frecuencia detectada: -- Hz";
+    centsEl.textContent="Desviación: -- cents";
+    meterDot.style.left="calc(50% - 6px)";
+  }else{
+    const freq=autoCorrelate(buffer,audioContext.sampleRate);
+    if(freq>0&&freq<700){
+      updateTuner(freq);
+    }else{
+      tuningMessage.textContent="Hay sonido, pero no detecto una nota estable. Toca una sola cuerda y deja que suene.";
+    }
+  }
+  rafId=requestAnimationFrame(detectLoop);
+}
+
+function autoCorrelate(buffer,sampleRate){
+  const size=buffer.length;
+  let mean=0;
+  for(let i=0;i<size;i++)mean+=buffer[i];
+  mean/=size;
+  let rms=0;
+  for(let i=0;i<size;i++){buffer[i]-=mean;rms+=buffer[i]*buffer[i];}
+  rms=Math.sqrt(rms/size);
+  if(rms<0.006)return -1;
+  let start=0,end=size-1;
+  const threshold=0.2;
+  while(start<size/2&&Math.abs(buffer[start])<threshold*0.01)start++;
+  while(end>start&&Math.abs(buffer[end])<threshold*0.01)end--;
+  const trimmed=buffer.slice(start,end+1);
+  const correlations=new Float32Array(trimmed.length);
+  for(let lag=0;lag<trimmed.length;lag++){
+    let sum=0;
+    for(let i=0;i<trimmed.length-lag;i++)sum+=trimmed[i]*trimmed[i+lag];
+    correlations[lag]=sum;
+  }
+  let lag=0;
+  while(lag+1<correlations.length&&correlations[lag]>correlations[lag+1])lag++;
+  let bestLag=-1,best=-1;
+  for(let i=lag;i<correlations.length-1;i++){
+    if(correlations[i]>best){best=correlations[i];bestLag=i;}
+  }
+  if(bestLag<=0)return -1;
+  const left=correlations[bestLag-1]||0, center=correlations[bestLag], right=correlations[bestLag+1]||0;
+  const denominator=2*(2*center-left-right);
+  const shift=denominator? (right-left)/denominator:0;
+  const refinedLag=bestLag+shift;
+  const frequency=sampleRate/refinedLag;
+  if(!Number.isFinite(frequency)||frequency<65||frequency>500)return -1;
+  return frequency;
+}
+
+function updateTuner(freq){
+  const target=strings[selected];
+  const cents=1200*Math.log2(freq/target.hz);
+  const nearestMidi=Math.round(69+12*Math.log2(freq/440));
+  const detectedName=noteNames[((nearestMidi%12)+12)%12];
+  const octave=Math.floor(nearestMidi/12)-1;
+  noteName.textContent=detectedName+octave;
+  frequencyEl.textContent="Frecuencia detectada: "+freq.toFixed(2)+" Hz · Objetivo: "+target.hz.toFixed(2)+" Hz";
+  centsEl.textContent="Desviación de "+target.short+": "+(cents>0?"+":"")+cents.toFixed(1)+" cents";
+  const bounded=Math.max(-50,Math.min(50,cents));
+  meterDot.style.left=`calc(${50+bounded}% - 6px)`;
+  if(Math.abs(cents)<=5){
+    tuningMessage.textContent="🎯 ¡AFINADA! Esa cuerda está en tono.";
+    tuningMessage.style.color="var(--green)";
+  }else if(cents < -5){
+    tuningMessage.textContent="♭ Demasiado grave para "+target.short+". Tensa la clavija muy poco a poco.";
+    tuningMessage.style.color="var(--red)";
+  }else{
+    tuningMessage.textContent="♯ Demasiado aguda para "+target.short+". Afloja la clavija muy poco a poco.";
+    tuningMessage.style.color="var(--red)";
+  }
+  if(Math.abs(cents)>50){
+    tuningMessage.textContent+=" (La nota detectada puede ser otra cuerda; comprueba la selección.)";
+  }
+}
+async function stopMic(){
+  micActive=false;
+  if(rafId!==null)cancelAnimationFrame(rafId);
+  rafId=null;
+  if(mediaStream)mediaStream.getTracks().forEach(track=>track.stop());
+  mediaStream=null;
+  if(sourceNode){try{sourceNode.disconnect();}catch(e){}}
+  sourceNode=null;analyser=null;
+  if(audioContext){try{await audioContext.close();}catch(e){}}
+  audioContext=null;
+  micButton.disabled=false;
+  micButton.textContent="🎙️ Activar micrófono";
+  stopButton.disabled=true;
+  noteName.textContent="--";
+  frequencyEl.textContent="Frecuencia detectada: -- Hz";
+  tuningMessage.style.color="";
+  tuningMessage.textContent="Micrófono detenido.";
+  centsEl.textContent="Desviación: -- cents";
+  meterDot.style.left="calc(50% - 6px)";
+}
+micButton.addEventListener("click",startMic);
+stopButton.addEventListener("click",stopMic);
+window.addEventListener("pagehide",()=>{if(mediaStream)mediaStream.getTracks().forEach(track=>track.stop());});
+</script>
+</body>
+</html>
